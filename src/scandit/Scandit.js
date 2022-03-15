@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { ProductPanel } from '../components/pages/refill-type/ProductPanel';
 import { Alert, AppState, BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { firebaseDB, scanditKey } from '../config/env';
+import { useGlobalContext } from '../store/context';
 import { requestCameraPermissionsIfNeeded } from '../../camera-permission-handler';
 import {
   BarcodeCapture,
@@ -23,46 +24,17 @@ import {
   VideoResolution,
 } from 'scandit-react-native-datacapture-core';
 
-export const Scandit = () => {
+export const Scandit = ({ route }) => {
 
-  const navigation = useNavigation()
+  const { refillList, setShowStockInput, setScanCount } = useGlobalContext();
+  console.log(route.params.product[0].gtin)
+  console.log(route.params)
   const viewRef = useRef(null);
-  const dataCaptureContext = DataCaptureContext.forLicenseKey("AewRw2KMQ1AaOwpSbBtntogWqDlQIdAV4nfuiJkqmrq+V0TvPGBHbndqFhuIXNwjSXDNxHEx8gwbHn4B3kD1ArFb/u4OdnS8yG8GMklfHCJ2RKtGgmcabURXP3TyZrdy3GGMqrtppREWQakBunStDVxz/ieVG2w3xRSF7jgPyPeCQQIQyD8JZOyBkOpD6sGylNFlFhoQDeIs4UDxcxUW5Cqtb6tdBgZyc12otsk1jc5eYXgPnwix5OCmkyAmfoHkO0lmmwHq8r7UrtJjwQrlyCcsCRcHMdJl3gp8YWplC9ceviHGz+0Ar5s1ZXXQvOI8lIeI2SbXZK2ZfcVss7Vl2xzyrna4+g6gwIBQEKm71AjjXogH+jJ/MsMTtQDPAzgmk2UyliFlg9XZiA7f7OJI2nWGh1YEhuW7QR0CscYZHpLoHTUjjNlLuqq08MHdlGua+dDcuz3wKBOIPC7fOeyW8kQd3u9ZwNKsqG7kyRU5o8NlRoaLgJcjL5SuPcat9D7fMtYJ10QZq14fKXSy8KGgaeUwSYDQSicI4GsTeEd4T5cFVKn/LclMohHQqoMwldUNg0f844NBbQxzLlUhIachvFPA7N+NuSalpWL0ixNzbYgmgkikkj+c/PsqZEhIlYC8VgWGAUKJqzj+Lwdv/VHb8xfNv/GGBf7j98SwjwJJcoz/QZerzYB6dbTVb4nBR/x37hvyhqz0Q3vmlv09s9azxIiBNpt0uLQpqiIHSuN1V6k/BuNDn4QOL6R94tPsb1qW0RrgxBFTIzepCHTMEurlA+Xk7O/pAWGqt5C17tl2excZxq7ARMnOc5nT9GxcNDZve+Ra9Jz4cs5XZyN+PVp/NAu068QL");
+  const dataCaptureContext = DataCaptureContext.forLicenseKey("ScanditKey");
   const camera = Camera.default;
-  const [info, setInfo] = useState([])
-  console.log(info)
-
-  const postProduct = async (barcode) => {
-    const response = await fetch("https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json", {
-      method: "POST",
-      body: JSON.stringify(barcode),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    const uploadData = await response.json();
-    console.log(uploadData)
-  };
-  const getProduct = async (barcode) => {
-    const response = await fetch(`https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json?orderBy="_data"&equalTo="${barcode._data}"&print=pretty`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-    const data = await response.json();
-    console.log(data._shelf)
-    const loadedData = [];
-    for (const key in data) {
-      loadedData.push({
-        id: key,
-        shelf: data._shelf,
-        warehouse: data._warehouse,
-      })
-    }
-    //console.log(uploadData)
-    setInfo(loadedData)
-  }
+  const [barcodeCount, setBarcodeCount] = useState(0)
+  const [showProductPanel, setShowProductPanel] = useState(false);
+  let count = 0
 
   const setupScanning = () => {
     const settings = new BarcodeCaptureSettings();
@@ -81,25 +53,40 @@ export const Scandit = () => {
 
     const barcodeCaptureMode = BarcodeCapture.forContext(dataCaptureContext, settings);
     barcodeCaptureMode.isEnabled = true;
-
     const barcodeCaptureListener = {
       didScan: (_, session) => {
+        count += 1
+        setScanCount(prevCount => prevCount + 1)
+        console.log(count)
         const barcode = session.newlyRecognizedBarcodes[0];
-        console.log(barcode._data)
         const symbology = new SymbologyDescription(barcode.symbology);
         barcodeCaptureMode.isEnabled = false;
-        Alert.alert(
-          null,
-          `Scanned: ${barcode.data} (${symbology.readableName})`,
-          [
-            { text: 'OK', onPress: () => barcodeCaptureMode.isEnabled = true },
-            { text: 'FIND', onPress: () => { getProduct(barcode), navigation.navigate("Result", { barcode: info }) } },
-            { text: 'UPLOAD', onPress: () => postProduct(barcode) },
-          ],
-          { cancelable: true }
-        );
-      }
-    }
+        setTimeout(() => {
+          barcodeCaptureMode.isEnabled = true;
+        }, 500)
+
+        if (+route.params.product[0].gtin === +barcode._data) {
+          setShowProductPanel(true)
+          setShowStockInput(true)
+          console.log(refillList);
+          console.log(barcode._data)
+        } else {
+          Alert.alert(
+            null,
+            `Error: ${barcode._data} is not present on refill list`,
+            [
+              {
+                text: "OK",
+                onPress: () => barcodeCaptureMode.isEnabled = true
+              },
+            ],
+          );
+          console.log(refillList);
+          console.log(route.params.product[0].gtin);
+          console.log(typeof +route.params.product[0].gtin)
+        }
+      },
+    };
 
     barcodeCaptureMode.addListener(barcodeCaptureListener);
     const overlay = BarcodeCaptureOverlay.withBarcodeCaptureForViewWithStyle(
@@ -111,7 +98,7 @@ export const Scandit = () => {
       RectangularViewfinderStyle.Square,
       RectangularViewfinderLineStyle.Light
     );
-  }
+  };
 
   const startCamera = () => {
     dataCaptureContext.setFrameSource(camera);
@@ -155,14 +142,24 @@ export const Scandit = () => {
       AppState.removeEventListener("change", handleAppStateChange);
       dataCaptureContext.dispose();
     };
-
   }, []);
 
   return (
-    <DataCaptureView
-      style={{ flex: 1 }}
-      context={dataCaptureContext}
-      ref={viewRef}
-    />
+    <>
+      {showProductPanel &&
+        <ProductPanel
+          gtin={route.params.product[0].gtin}
+          material_description={route.params.product[0].material_description}
+          stock={route.params.product[0].stock}
+          stock_required={route.params.product[0].stock_required}
+          aisle_number={route.params.product[0].aisle_number}
+          count={count}
+        />}
+      <DataCaptureView
+        style={{ flex: 1 }}
+        context={dataCaptureContext}
+        ref={viewRef}
+      />
+    </>
   );
 };

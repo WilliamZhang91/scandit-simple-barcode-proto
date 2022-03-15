@@ -1,21 +1,33 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { useGlobalContext } from "../store/context";
 
 export const Result = ({ route }) => {
 
-    const { barcode } = route.params
-    const { results } = route.params
+    const { stock } = useGlobalContext();
+    const { matrixSimple } = useGlobalContext();
 
-    if (barcode) {
+    //console.log(barcode) {shelf: 0, barcode: 0}
+
+    if (stock.shelf !== 0 && stock.warehouse !== 0) {
         return (
             <View>
-               <Text>barcode: {JSON.stringify(barcode)} : </Text>
+                <Text>Shelf: {stock.shelf}</Text>
+                <Text>Warehouse: {stock.warehouse}</Text>
             </View>
         )
-    } else if (results) {
+    } else if (matrixSimple) {
         return (
             <View>
-                <Text>result: {JSON.stringify(results)}</Text>
+                <Text>
+                    {matrixSimple.map((matrix, index) => {
+                    return <View>
+                        <Text>Product: {matrix.product}</Text>
+                        <Text>Shelf: {matrix.shelf}</Text>
+                        <Text>warehouse: {matrix.warehouse}</Text>
+                    </View>
+                })}
+                </Text>
             </View>
         )
     } else {

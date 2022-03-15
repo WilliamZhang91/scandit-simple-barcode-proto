@@ -4,6 +4,9 @@
 
 .env
 
+src/scandit/matrix-bubble-scan
+src/scandit/matrix-bubble-simple
+
 # Xcode
 #
 build/
