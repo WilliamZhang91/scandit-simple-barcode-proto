@@ -2,6 +2,6 @@
   "name": "Project",
   "displayName": "Project",
   "android": {
-    "package": "com.scandit.barcodecapturesimplesample"
+    "package": "com.scandit.matrixscansimplesample"
   }
 }

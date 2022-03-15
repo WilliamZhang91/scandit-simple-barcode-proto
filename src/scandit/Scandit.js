@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Alert, AppState, BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { firebaseDB, scanditKey } from '../config/env';
@@ -26,10 +26,43 @@ import {
 export const Scandit = () => {
 
   const navigation = useNavigation()
-
   const viewRef = useRef(null);
-  const dataCaptureContext = DataCaptureContext.forLicenseKey(scanditKey);
+  const dataCaptureContext = DataCaptureContext.forLicenseKey("AewRw2KMQ1AaOwpSbBtntogWqDlQIdAV4nfuiJkqmrq+V0TvPGBHbndqFhuIXNwjSXDNxHEx8gwbHn4B3kD1ArFb/u4OdnS8yG8GMklfHCJ2RKtGgmcabURXP3TyZrdy3GGMqrtppREWQakBunStDVxz/ieVG2w3xRSF7jgPyPeCQQIQyD8JZOyBkOpD6sGylNFlFhoQDeIs4UDxcxUW5Cqtb6tdBgZyc12otsk1jc5eYXgPnwix5OCmkyAmfoHkO0lmmwHq8r7UrtJjwQrlyCcsCRcHMdJl3gp8YWplC9ceviHGz+0Ar5s1ZXXQvOI8lIeI2SbXZK2ZfcVss7Vl2xzyrna4+g6gwIBQEKm71AjjXogH+jJ/MsMTtQDPAzgmk2UyliFlg9XZiA7f7OJI2nWGh1YEhuW7QR0CscYZHpLoHTUjjNlLuqq08MHdlGua+dDcuz3wKBOIPC7fOeyW8kQd3u9ZwNKsqG7kyRU5o8NlRoaLgJcjL5SuPcat9D7fMtYJ10QZq14fKXSy8KGgaeUwSYDQSicI4GsTeEd4T5cFVKn/LclMohHQqoMwldUNg0f844NBbQxzLlUhIachvFPA7N+NuSalpWL0ixNzbYgmgkikkj+c/PsqZEhIlYC8VgWGAUKJqzj+Lwdv/VHb8xfNv/GGBf7j98SwjwJJcoz/QZerzYB6dbTVb4nBR/x37hvyhqz0Q3vmlv09s9azxIiBNpt0uLQpqiIHSuN1V6k/BuNDn4QOL6R94tPsb1qW0RrgxBFTIzepCHTMEurlA+Xk7O/pAWGqt5C17tl2excZxq7ARMnOc5nT9GxcNDZve+Ra9Jz4cs5XZyN+PVp/NAu068QL");
   const camera = Camera.default;
+  const [info, setInfo] = useState([])
+  console.log(info)
+
+  const postProduct = async (barcode) => {
+    const response = await fetch("https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json", {
+      method: "POST",
+      body: JSON.stringify(barcode),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const uploadData = await response.json();
+    console.log(uploadData)
+  };
+  const getProduct = async (barcode) => {
+    const response = await fetch(`https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json?orderBy="_data"&equalTo="${barcode._data}"&print=pretty`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+    const data = await response.json();
+    console.log(data._shelf)
+    const loadedData = [];
+    for (const key in data) {
+      loadedData.push({
+        id: key,
+        shelf: data._shelf,
+        warehouse: data._warehouse,
+      })
+    }
+    //console.log(uploadData)
+    setInfo(loadedData)
+  }
 
   const setupScanning = () => {
     const settings = new BarcodeCaptureSettings();
@@ -52,29 +85,7 @@ export const Scandit = () => {
     const barcodeCaptureListener = {
       didScan: (_, session) => {
         const barcode = session.newlyRecognizedBarcodes[0];
-        console.log(barcode)
         console.log(barcode._data)
-        const postProduct = async () => {
-          const response = await fetch(firebaseDB, {
-            method: "POST",
-            body: JSON.stringify(barcode),
-            headers: {
-              "Content-Type": "application/json"
-            }
-          });
-          const uploadData = await response.json();
-          console.log(uploadData)
-        };
-        const getProduct = async () => {
-          const response = await fetch(`${firebaseDB}?orderBy="_data"&equalTo=${barcode._data}&print=pretty`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json"
-            }
-          });
-          const uploadData = await response.json();
-          console.log(uploadData)
-        }
         const symbology = new SymbologyDescription(barcode.symbology);
         barcodeCaptureMode.isEnabled = false;
         Alert.alert(
@@ -82,8 +93,8 @@ export const Scandit = () => {
           `Scanned: ${barcode.data} (${symbology.readableName})`,
           [
             { text: 'OK', onPress: () => barcodeCaptureMode.isEnabled = true },
-            { text: 'FIND', onPress: () => { getProduct(), navigation.navigate("Result", { barcode: barcode }) } },
-            { text: 'UPLOAD', onPress: () => postProduct() },
+            { text: 'FIND', onPress: () => { getProduct(barcode), navigation.navigate("Result", { barcode: info }) } },
+            { text: 'UPLOAD', onPress: () => postProduct(barcode) },
           ],
           { cancelable: true }
         );
@@ -140,7 +151,7 @@ export const Scandit = () => {
     AppState.addEventListener("change", handleAppStateChange);
     setupScanning();
     startCamera();
-    return cleanUp = () => {
+    return () => {
       AppState.removeEventListener("change", handleAppStateChange);
       dataCaptureContext.dispose();
     };
@@ -155,4 +166,3 @@ export const Scandit = () => {
     />
   );
 };
-

@@ -10,9 +10,17 @@ export const Home = () => {
         <View>
             <Text>Home</Text>
             <Button
-                title="Scan"
+                title="Simple Scan"
                 onPress={() => navigation.navigate("Scandit")}
             />
+            <Button
+                title="Matrix Bubble Scan"
+                onPress={() => navigation.navigate("MatrixBubble")}
+            />
+            <Button
+                title="Matrix Simple Scan"
+                onPress={() => navigation.navigate("MatrixBubble")}
+            />
         </View>
-    )
-}
+    );
+};
