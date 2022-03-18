@@ -28,14 +28,12 @@ export const styles = StyleSheet.create({
         paddingLeft: 15,
         fontSize: 25,
         borderWidth: 1,
+        color: "black"
     },
     warehouseStock: {
         width: 60,
         height: 60,
         borderWidth: 1,
-        fontSize: 20
+        fontSize: 20,
     },
-    text: {
-        alignItems: "center"
-    }
 })

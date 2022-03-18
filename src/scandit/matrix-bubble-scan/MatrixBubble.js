@@ -119,7 +119,7 @@ export class MatrixBubble extends Component {
   }
 
   getProduct = async (barcode) => {
-    const response = await fetch(`https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json?orderBy="_data"&equalTo="${barcode}"&print=pretty`, {
+    const response = await fetch(`FIREBASE_ENDPOINT`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"

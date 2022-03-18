@@ -1,20 +1,18 @@
-import React, { useEffect } from "react";
-import { SafeAreaView, View, ScrollView } from "react-native";
+import React from "react";
+import { SafeAreaView, ScrollView } from "react-native";
 import { styles } from "./refillTypeStyles";
 import { useGlobalContext } from "../../../store/context";
 import { ProductPanel } from "./ProductPanel";
-import { useNavigation } from '@react-navigation/native';
 
-export const Urgent = ({ data }) => {
+export const Urgent = () => {
 
-    const navigation = useNavigation();
-    const { refillList, setRefillList } = useGlobalContext();
+    const { refillList } = useGlobalContext();
 
-    const urgentRefill = data.filter(item => item.Stock <= +item.Stock_required / 2);
-    
-    useEffect(() => {
-        setRefillList(urgentRefill)
-    },[])
+    const urgentRefill = refillList.filter(item => item.Stock <= +item.Stock_required / 2);
+    console.log(urgentRefill);
+    //useEffect(() => {
+    //    setRefillList(urgentRefill)
+    //}, [])
 
     return (
         <SafeAreaView style={styles.container}>
@@ -25,7 +23,8 @@ export const Urgent = ({ data }) => {
                         Material_Description, 
                         Stock, 
                         Stock_required, 
-                        Aisle_Number 
+                        Aisle_Number,
+                        image 
                     } = refill;
                     return <ProductPanel
                         key={index}
@@ -34,7 +33,7 @@ export const Urgent = ({ data }) => {
                         stock_required={Stock_required}
                         aisle_number={Aisle_Number}
                         material_description={Material_Description}
-                        //urgentRefill={urgentRefill}
+                        image={image}
                     />
                 })}
             </ScrollView>

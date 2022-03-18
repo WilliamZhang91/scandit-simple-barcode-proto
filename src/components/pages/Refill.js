@@ -46,15 +46,15 @@ export const Refill = () => {
                 </SafeAreaView>
                 {(() => {
                     if (refillType === 1) {
-                        return <Urgent data={data} />
+                        return <Urgent />
                     } else if (refillType === 2) {
-                        return <Standard data={data} />
+                        return <Standard />
                     } else if (refillType === 3) {
                         return null
                     }
                 })()}
                 <Pressable style={styles.doneBtn}>
-                    <Text>DONE</Text>
+                    <Text>Scan</Text>
                 </Pressable>
             </View>
         </View>

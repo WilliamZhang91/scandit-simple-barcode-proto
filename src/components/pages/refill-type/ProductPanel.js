@@ -1,6 +1,6 @@
-import React from "react"
+import React, { useState } from "react"
 import { styles } from "./productPanelStyles";
-import { View, Text, Image, Pressable, ScrollView } from 'react-native';
+import { View, Text, Image, Pressable, ScrollView, Alert } from 'react-native';
 import { TextInput, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,12 +12,13 @@ export const ProductPanel = ({
     stock,
     stock_required,
     aisle_number,
-    count
+    image,
 }) => {
 
-    const { isBarcodeCorrect, scanCount } = useGlobalContext();
-    const { showStockInput, setShowStockInput } = useGlobalContext();
+    const { scanCount, setScanCount, showStockInput, setShowStockInput } = useGlobalContext();
+    const [value, setValue] = useState()
     const navigation = useNavigation();
+    console.log(image)
 
     const productDescription = () => {
         let product = [];
@@ -26,7 +27,8 @@ export const ProductPanel = ({
             material_description: material_description,
             stock: stock,
             stock_required,
-            aisle_number: aisle_number
+            aisle_number: aisle_number,
+            image
         });
         navigation.navigate("Scandit", { product: product });
     };
@@ -38,20 +40,17 @@ export const ProductPanel = ({
                 onPress={() => productDescription()}
             >
                 <Image
-                    source={require("../../assets/refillMenu/coke.png")}
+                    source={{ uri: image }}
                     style={styles.productImg}
                 />
                 <Text style={styles.productDescription}>
                     {material_description}
                 </Text>
-                {showStockInput ? <View>
-                    <Text>{scanCount}</Text>
-                </View> : null}
                 {showStockInput ?
                     <View style={styles.inputBox}>
                         <TextInput
-                            keyboardType="number-pad"
                             style={styles.input}
+                            placeholder={`${scanCount}`}
                         />
                         <View style={styles.text}>
                             <Text style={styles.warehouseStock}>/100</Text>
@@ -63,6 +62,6 @@ export const ProductPanel = ({
                     </View>}
             </Pressable>
         </SafeAreaView>
-    )
-}
+    );
+};
 

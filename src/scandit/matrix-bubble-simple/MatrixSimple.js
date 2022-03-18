@@ -75,7 +75,7 @@ export const MatrixSimple = () => {
   }
 
   const postProduct = async (barcode) => {
-    const response = await fetch("https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json", {
+    const response = await fetch("FIREBASE_ENDPOINT", {
       method: "POST",
       body: JSON.stringify(barcode),
       headers: {
@@ -88,7 +88,7 @@ export const MatrixSimple = () => {
 
   const getProduct = () => {
     listOfBarcodes.map(item => {
-      fetch(`https://scandit-3f0b6-default-rtdb.asia-southeast1.firebasedatabase.app/products.json?orderBy="_data"&equalTo="${item}"&print=pretty`, {
+      fetch(`FIREBASE_ENDPOINT`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json"

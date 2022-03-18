@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ProductPanel } from '../components/pages/refill-type/ProductPanel';
-import { Alert, AppState, BackHandler } from 'react-native';
+import { Alert, AppState, BackHandler, View, Pressable, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useGlobalContext } from '../store/context';
+import { styles } from "../components/pages/refillStyles";
 import { requestCameraPermissionsIfNeeded } from '../../camera-permission-handler';
 import {
   BarcodeCapture,
@@ -26,15 +27,20 @@ import {
 
 export const Scandit = ({ route }) => {
 
-  const { refillList, setShowStockInput, setScanCount } = useGlobalContext();
-  console.log(route.params.product[0].gtin)
-  console.log(route.params)
+  const {
+    refillList,
+    setRefillList,
+    setShowStockInput,
+    scanCount,
+    setScanCount
+  } = useGlobalContext();
+  const navigation = useNavigation();
   const viewRef = useRef(null);
-  const dataCaptureContext = DataCaptureContext.forLicenseKey("ScanditKey");
+  const dataCaptureContext = DataCaptureContext.forLicenseKey("SCANDIT_KEY");
   const camera = Camera.default;
-  const [barcodeCount, setBarcodeCount] = useState(0)
   const [showProductPanel, setShowProductPanel] = useState(false);
-  let count = 0
+  let count = 0;
+  console.log(route.params.product[0].gtin)
 
   const setupScanning = () => {
     const settings = new BarcodeCaptureSettings();
@@ -55,19 +61,19 @@ export const Scandit = ({ route }) => {
     barcodeCaptureMode.isEnabled = true;
     const barcodeCaptureListener = {
       didScan: (_, session) => {
-        count += 1
-        setScanCount(prevCount => prevCount + 1)
-        console.log(count)
+        count += 1;
+        setScanCount(prevCount => prevCount + 1);
+        console.log(count);
         const barcode = session.newlyRecognizedBarcodes[0];
         const symbology = new SymbologyDescription(barcode.symbology);
         barcodeCaptureMode.isEnabled = false;
         setTimeout(() => {
           barcodeCaptureMode.isEnabled = true;
-        }, 500)
+        }, 100);
 
         if (+route.params.product[0].gtin === +barcode._data) {
-          setShowProductPanel(true)
-          setShowStockInput(true)
+          setShowProductPanel(true);
+          setShowStockInput(true);
           console.log(refillList);
           console.log(barcode._data)
         } else {
@@ -83,7 +89,7 @@ export const Scandit = ({ route }) => {
           );
           console.log(refillList);
           console.log(route.params.product[0].gtin);
-          console.log(typeof +route.params.product[0].gtin)
+          console.log(typeof +route.params.product[0].gtin);
         }
       },
     };
@@ -113,8 +119,8 @@ export const Scandit = ({ route }) => {
   const stopCamera = () => {
     if (camera) {
       camera.switchToDesiredState(FrameSourceState.Off)
-    }
-  }
+    };
+  };
 
   const startCapture = () => {
     startCamera();
@@ -144,6 +150,116 @@ export const Scandit = ({ route }) => {
     };
   }, []);
 
+  async function getRefillList() {
+    await fetch(`API_GATEWAY_ENDPOINT/products/refill_list`)
+      .then(response => response.json())
+      .then(response => {
+        console.log(response);
+        setRefillList(response)
+      })
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    let fetch = false
+    if (!fetch) getRefillList();
+    console.log(refillList)
+    return () => { fetch = true };
+  }, []);
+
+  const postScanCount = () => {
+    fetch("API_GATEWAY_ENDPOINT/update_stock_count", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        gtin: route.params.product[0].gtin,
+        stockCount: scanCount,
+      }),
+    })
+      .then(response => response.json())
+      .then(response => {
+        console.log(response);
+        setScanCount(prevCount => 0);
+        setShowStockInput(false);
+      })
+      .catch(err => console.log(err))
+  };
+
+  const postTimestamp = () => {
+    fetch("API_GATEWAY_ENDPOINT/record_datetime", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        gtin: route.params.product[0].gtin,
+      }),
+    })
+      .then(response => response.json())
+      .then(response => {
+        console.log(response)
+      })
+      .catch(err => console.log(err))
+  }
+
+  const done = () => {
+    Alert.alert(
+      null,
+      "Update stock?",
+      [
+        {
+          text: "Update",
+          onPress: () => { 
+            postScanCount(), 
+            postTimestamp(), 
+            getRefillList(),
+            navigation.goBack()
+          },
+        },
+        {
+          text: "Cancel"
+        },
+      ],
+    );
+  };
+
+  const cancel = () => {
+    Alert.alert(
+      null,
+      "Are you sure you want to exit?",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            setScanCount(prevCount => 0);
+            setShowStockInput(false);
+            navigation.goBack();
+          }
+        },
+        {
+          text: "Cancel",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleBackButtonClick = () => {
+    navigation.goBack();
+    setScanCount(prevCount => 0);
+    setShowStockInput(false);
+    return true;
+  }
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', handleBackButtonClick);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackButtonClick);
+    };
+  }, []);
+
   return (
     <>
       {showProductPanel &&
@@ -160,6 +276,14 @@ export const Scandit = ({ route }) => {
         context={dataCaptureContext}
         ref={viewRef}
       />
+      <View>
+        <Pressable style={styles.doneBtn} onPress={done}>
+          <Text>DONE</Text>
+        </Pressable>
+        <Pressable style={styles.backBtn} onPress={cancel}>
+          <Text>CANCEL</Text>
+        </Pressable>
+      </View>
     </>
   );
 };

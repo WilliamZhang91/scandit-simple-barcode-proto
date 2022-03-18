@@ -4,10 +4,19 @@ export const styles = StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
+        height: "100%",
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 25,
-        marginBottom: 25,
+        marginTop: 35,
+        marginBottom: 35,
+    },
+    container2: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 35,
     },
     userContainer: {
         marginTop: 10
@@ -41,7 +50,7 @@ export const styles = StyleSheet.create({
         flexWrap: 'wrap',
         marginTop: 'auto',
         marginRight: 'auto',
-        marginBottom: 40,
+        marginBottom: 10,
         marginLeft: 'auto',
     },
     btn: {
@@ -55,6 +64,7 @@ export const styles = StyleSheet.create({
         borderRadius: 10,
         borderColor: 'black',
         borderWidth: 2,
+        alignContent: "center"
     },
     btnIcons: {
         width: 35,
@@ -67,10 +77,47 @@ export const styles = StyleSheet.create({
     },
     productImg: {
         borderRadius: 20,
-        width: 250,
-        height: 250,
+        width: 200,
+        height: 200,
     },
     productDescription: {
         marginTop: 15,
-    }
+    },
+    loading: {
+        textAlign: "center",
+        fontSize: 50,
+        fontWeight: "900",
+    },
+    doneBtn: {
+        width: 100,
+        height: 40,
+        backgroundColor: '#00f6ff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 5,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 2},
+        shadowRadius: 2,
+        shadowOpacity: 0.5,
+        position: 'absolute',
+        bottom: -45,
+        left: 27,
+        zIndex: 1,
+    },
+    CancelBtn: {
+        width: 100,
+        height: 40,
+        backgroundColor: '#e85151',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 5,
+        shadowColor: 'black',
+        shadowOffset: {width: 0, height: 2},
+        shadowRadius: 2,
+        shadowOpacity: 0.5,
+        position: 'absolute',
+        bottom: -45,
+        right: 27,
+        zIndex: 1,
+    },
 });

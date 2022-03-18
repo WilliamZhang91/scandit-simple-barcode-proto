@@ -3,9 +3,8 @@ import { Login } from "./src/components/pages/Login";
 import { Dashboard } from "./src/components/pages/Dashboard";
 import { Refill } from "./src/components/pages/Refill";
 import { ProductDashboard } from "./src/components/pages/ProductDashboard";
-import { Home } from './src/components/Home';
-import { Result } from './src/components/Result';
 import { Scandit } from './src/scandit/Scandit';
+import { ScanditForAllProducts } from "./src/scandit/ScanditForAllProducts";
 import { MatrixBubble } from './src/scandit/matrix-bubble-scan/MatrixBubble';
 import { MatrixSimple } from './src/scandit/matrix-bubble-simple/MatrixSimple';
 import { NavigationContainer } from '@react-navigation/native';
@@ -26,8 +25,9 @@ const App = () => {
           <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
           <Stack.Screen name="Dashboard" component={Dashboard} options={{ headerShown: false }} />
           <Stack.Screen name="Refill" component={Refill} options={{ headerShown: false }} />
-          <Stack.Screen name="Scandit" component={Scandit} options={{ headerShown: false }}/>
-          <Stack.Screen name="Product_Dashboard" component={ProductDashboard} options={{ headerShown: false }}/>
+          <Stack.Screen name="Scandit" component={Scandit} options={{ headerShown: false }} />
+          <Stack.Screen name="Product_Dashboard" component={ProductDashboard} options={{ headerShown: false }} />
+          <Stack.Screen name="Scandit_All_Products" component={ScanditForAllProducts} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </AppProvider>
